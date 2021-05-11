@@ -241,7 +241,7 @@ mark {
 }
 
 .bg-color {
-    background-image: linear-gradient(to right, #4cbf30 0%, #0f9d58 100%);
+    background-color: rgba(0,0,0,0.3);
 }
 
 .text-color {
@@ -257,7 +257,7 @@ mark {
     position: fixed;
     bottom: 0;
     z-index: 300;
-    background: linear-gradient(to right, #4cbf30 0%, #0f9d58 100%);
+    background: linear-gradient(to right, #999 0%, #333 100%);
     opacity: 0.8;
 }
 
@@ -1834,7 +1834,6 @@ footer {
 }
 
 footer .social-statis {
-    margin-top: 10px;
     position: relative;
 }
 
