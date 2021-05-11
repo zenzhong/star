@@ -12,6 +12,7 @@
 <script src="<%- theme.jsDelivr.url %><%- url_for(theme.libs.js.gitalk) %>"></script>
 <script>
     let gitalk = new Gitalk({
+        language: '<%- theme.gitalk.language %>',
         clientID: '<%- theme.gitalk.oauth.clientId %>',
         clientSecret: '<%- theme.gitalk.oauth.clientSecret %>',
         repo: '<%- theme.gitalk.repo %>',

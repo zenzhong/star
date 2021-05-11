@@ -772,6 +772,10 @@
 .gt-container .gt-ico-github svg {
   fill: inherit;
 }
+.gt-container .gt-ico-tip .gt-svg svg {
+  vertical-align: middle;
+  margin-top: -11px;
+}
 .gt-container .gt-spinner {
   position: relative;
 }
