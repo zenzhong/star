@@ -288,8 +288,8 @@ gitalk:
   owner: zzq210218
   repo: star
   oauth:
-    clientId: 
-    clientSecret: 
+    clientId: 0a428c701c25b7c5e51b
+    clientSecret: 6e6bd5d8a0175fea006c766dc60f809fe0ca0110
   admin: zzq210218
 
 # the Gitment config，default disabled
