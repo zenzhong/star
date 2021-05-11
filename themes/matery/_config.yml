@@ -288,9 +288,9 @@ gitalk:
   owner: zzq210218
   repo: star
   oauth:
-    clientId: 0a428c701c25b7c5e51b
-    clientSecret: 106d66ed75af3e7090cbc48611fc0b2ccee1b80c
-  admin: "['zzq210218']"
+    clientId: $GH_CLIENTID
+    clientSecret: $GH_CLIENT_SECRET
+  admin: zzq210218
 
 # the Gitment config，default disabled
 # Gitment 评论模块的配置，默认为不激活
