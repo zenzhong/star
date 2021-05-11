@@ -25,6 +25,7 @@ var isTag = is_tag();
                 <i class="fas fa-tags"></i>&nbsp;&nbsp;<%= __('postTagTitle') %>
             </div>
             <div class="tag-chips">
+                <% if (site.tags && site.tags.length > 0) { %>
                 <% site.tags.map(function(tag) { %>
                 <%
                     i++;
@@ -39,6 +40,9 @@ var isTag = is_tag();
                     </span>
                 </a>
                 <% }); %>
+                <% } else { %>
+                <%= __('postTagEmptyTip') %>
+                <% } %>
             </div>
         </div>
     </div>

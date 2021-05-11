@@ -23,6 +23,7 @@ next: Next
 search: Search
 searchTip: Please enter a search keyword
 postTagTitle: Post Tags
+postTagEmptyTip: Your posts has no tags information yet.
 postCategoryTitle: Post Categories
 categoryRadarTitle: Post Categories Radar Chart
 categoryNumber: Number of Categories

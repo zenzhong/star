@@ -23,6 +23,7 @@ next: 下一篇
 search: 搜索
 searchTip: 請輸入搜索的關鍵字
 postTagTitle: 文章標籤
+postTagEmptyTip: 你目前還沒有對文章添加標籤.
 postCategoryTitle: 文章分類
 categoryRadarTitle: 文章分類雷達圖
 categoryNumber: 文章分類數量
