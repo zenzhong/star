@@ -1025,10 +1025,6 @@ article .article-tags .chip {
     0 2px 5px -5px rgba(0, 0, 0, .1) !important;
 }
 
-#artDetail .tag-cate {
-    padding-bottom: 15px;
-}
-
 #artDetail a {
     margin-right: 0 !important;
     text-transform: none !important;
