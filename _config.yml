@@ -132,3 +132,9 @@ permalink_pinyin:
 #   content_limit: 140
 #   content_limit_delim: ' '
 #   order_by: -date
+
+# minify
+minify:
+  js: true
+  css: true
+  html: true
