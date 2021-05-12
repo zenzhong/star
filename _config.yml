@@ -115,23 +115,23 @@ permalink_pinyin:
   separator: '-' # default: '-'
 
 # emoji
-# githubEmojis:
-#   enable: true
-#   className: github-emoji
-#   inject: true
-#   styles:
-#   customEmojis:
+githubEmojis:
+  enable: true
+  className: github-emoji
+  inject: true
+  styles:
+  customEmojis:
 
 # rss
-# feed:
-#   type: atom
-#   path: atom.xml
-#   limit: 20
-#   hub:
-#   content:
-#   content_limit: 140
-#   content_limit_delim: ' '
-#   order_by: -date
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+  hub:
+  content:
+  content_limit: 140
+  content_limit_delim: ' '
+  order_by: -date
 
 # minify
 minify:
