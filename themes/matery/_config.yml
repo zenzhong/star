@@ -201,15 +201,15 @@ clicklove:
 # profile in about page, including avatars, career, and personal introductions.
 # 在”关于”页面中配置个人信息，包括头像、职业和个人介绍.
 profile:
-  avatar: /medias/avatar.jpg
+  avatar: /medias/avatar.jpeg
   career: Software Engineer
-  introduction: If you wish to succeed, you should use persistence as your good friend, experience as your reference, prudence as your brother and hope as your sentry.
+  introduction: 
 
 # config my projects informations in about page.
 # If you don't want to display this `My Projects` content, you can deactivate or delete this configuration.
 # 在“关于”页面配置"我的项目"信息，如果你不需要这些信息则可以将其设置为不激活或者将其删除.
 myProjects:
-  enable: true
+  enable: false
   data:
     hexo-theme-matery:
       icon: fas fa-file-alt
@@ -233,24 +233,30 @@ myProjects:
 mySkills:
   enable: true
   data:
-    Java:
-      background: 'linear-gradient(to right, #FF0066 0%, #FF00CC 100%)'
+    JAVASCRIPT:
+      background: 'linear-gradient(to right, #ff9a9e 0%, #fad0c4 100%)'
       percent: 85%
-    JavaScript:
-      background: 'linear-gradient(to right, #9900FF 0%, #CC66FF 100%)'
-      percent: 80%
     HTML5:
-      background: 'linear-gradient(to right, #2196F3 0%, #42A5F5 100%)'
+      background: 'linear-gradient(to right, #a1c4fd 0%, #c2e9fb 100%)'
       percent: 80%
     CSS:
-      background: 'linear-gradient(to right, #00BCD4 0%, #80DEEA 100%)'
-      percent: 70%
+      background: 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)'
+      percent: 80%
+    NODE:
+      background: 'linear-gradient(to right, #fda085 0%, #f6d365 100%)'
+      percent: 80%
+    PHP:
+      background: 'linear-gradient(to right, #66a6ff 0%, #89f7fe 100%)'
+      percent: 60%
     SQL:
-      background: 'linear-gradient(to right, #4CAF50 0%, #81C784 100%)'
-      percent: 90%
+      background: 'linear-gradient(to right, #cd9cf2 0%, #f6f3ff 100%)'
+      percent: 60%
     程序设计:
-      background: 'linear-gradient(to right, #FFEB3B 0%, #FFF176 100%)'
+      background: 'linear-gradient(to right, #ffeb3b 0%, #fff8bf 100%)'
       percent: 75%
+    RUST:
+      background: 'linear-gradient(to right, #aa7fff 0%, #e2a9f9 100%)'
+      percent: 20%
 
 # config gallery of my photos in about page.
 # If you don't want to display this `Gallery` content, you can deactivate or delete this configuration.

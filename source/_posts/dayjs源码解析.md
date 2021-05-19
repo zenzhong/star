@@ -104,6 +104,20 @@ export const REGEX_FORMAT = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,
 
 ### 国际化配置：locale
 
+#### 使用
+
+`dayjs`会在打包的时候生成`locale.json`文件，存储语言包的`key`和`name`组成的数组。
+
+注册使用语言包:
+
+```
+import * as dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn'; // 全局注册语言包
+
+dayjs.locale('zh-cn'); // 全局启用
+dayjs().locale('zh-cn').format(); // 当前实例启用
+```
+
 #### en.js
 
 由于默认使用`en`作为`locale`，原生API也是使用`en`输出，因此`en.js`只配置了部分参数：
@@ -125,22 +139,34 @@ export default {
 import dayjs from 'dayjs'
 
 const locale = {
+  // 语言名
   name: 'zh-cn',
+  // 星期
   weekdays: '星期日_星期一_星期二_星期三_星期四_星期五_星期六'.split('_'),
+  // 短的星期
   weekdaysShort: '周日_周一_周二_周三_周四_周五_周六'.split('_'),
+  // 最短的星期
   weekdaysMin: '日_一_二_三_四_五_六'.split('_'),
+  // 月份
   months: '一月_二月_三月_四月_五月_六月_七月_八月_九月_十月_十一月_十二月'.split('_'),
+  // 短的月份
   monthsShort: '1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月'.split('_'),
+  // 序号生成工厂函数
   ordinal: (number, period) => {
     switch (period) {
       case 'W':
+        // W返回周序号
         return `${number}周`
       default:
+        // 默认返回日序号
         return `${number}日`
     }
   },
+  // 一周起始日，设置为1定义星期一是开始
   weekStart: 1,
+  // 一年起始周，设置为4定义一月四号所在周是开始
   yearStart: 4,
+  // 时间日期格式
   formats: {
     LT: 'HH:mm',
     LTS: 'HH:mm:ss',
@@ -153,6 +179,7 @@ const locale = {
     lll: 'YYYY年M月D日 HH:mm',
     llll: 'YYYY年M月D日dddd HH:mm'
   },
+  // 相对时间格式
   relativeTime: {
     future: '%s内',
     past: '%s前',
@@ -168,6 +195,7 @@ const locale = {
     y: '1 年',
     yy: '%d 年'
   },
+  // 时间段
   meridiem: (hour, minute) => {
     const hm = (hour * 100) + minute
     if (hm < 600) {
@@ -185,8 +213,150 @@ const locale = {
   }
 }
 
+// 全局注册语言包
 dayjs.locale(locale, null, true)
 
+// 导出语言配置，用于启用
 export default locale
+```
+
+#### 工具函数：utils.js
+
+```js
+// ES Module引入常量，短名减少代码量
+import * as C from './constant'
+
+/**
+ * @description: 在 string 的开头填充 pad 字符，直到长度为 length，相当于`string.padStart(length, pad)`，空字符串也不做填充
+ * @param {String} string 被填充的字符串
+ * @param {Number} length 需要扩充到的长度
+ * @param {String} pad 填充字符
+ * @return {String} 填充后的字符串
+ */
+const padStart = (string, length, pad) => {
+  // 只做了string的类型兼容判断，length，pad都没有，有风险
+  // 可参考：https://github.com/lodash/lodash/blob/4.17.15/lodash.js#L14443
+  // 但也有一个想法：判断是否够用就行，不用做到极致，否则也是一种浪费？
+  const s = String(string)
+  if (!s || s.length >= length) return string
+  // Array((length + 1) - s.length).join(pad)
+  // 可简化为pad.repeat(length - s.length)
+  // dayjs打包直接就体现：从2.6KB转成了2.59KB
+  return `${Array((length + 1) - s.length).join(pad)}${string}`
+}
+
+/**
+ * @description: 将实例的UTC偏移量（分钟）转化成的 [+|-]HH:mm的格式
+ * @param {Dayjs} instance Dayjs的实例
+ * @return {String} UTC偏移量，格式：[+|-]HH:mm
+ */
+const padZoneStr = (instance) => {
+  // 这里逻辑取反，而后面判断<=0为正，是否有必要呢？改为以下代码可读性感觉更好：
+  // const minutes = instance.utcOffset()
+  // const absMinutes = Math.abs(minutes)
+  // const hourOffset = Math.floor(absMinutes / 60)
+  // const minuteOffset = absMinutes % 60
+  // return `${minutes >= 0 ? '+' : '-'}${padStart(hourOffset, 2, '0')}:${padStart(minuteOffset, 2, '0')}`
+  const negMinutes = -instance.utcOffset()
+  const minutes = Math.abs(negMinutes)
+  const hourOffset = Math.floor(minutes / 60)
+  const minuteOffset = minutes % 60
+  return `${negMinutes <= 0 ? '+' : '-'}${padStart(hourOffset, 2, '0')}:${padStart(minuteOffset, 2, '0')}`
+}
+
+/**
+ * @description: 返回两个Dayjs实例的月份差
+ * @param {Dayjs} a Dayjs的实例
+ * @param {Dayjs} b Dayjs的实例
+ * @return {Number} 返回两个实例的月份差
+ */
+const monthDiff = (a, b) => {
+  // 来自moment.js的函数，确保两者返回相同的结果
+  // 使用简单的反向逻辑递归调用，大大降低代码逻辑复杂度，减少代码量
+  // 但是另外一方面转成了-(b-a)，不知道为什么要做这个反转，同上面的padZoneStr
+  // 关于monthDiff算法的讨论：https://stackoverflow.com/questions/2536379/difference-in-months-between-two-dates-in-javascript
+  // moment讨论结果：https://github.com/moment/moment/pull/571
+  // 以下解析按照不反转逻辑来解析即a-b
+  // 算法主要分为两部分，两部分相加即可
+  // 1. 不考虑日期，计算相差的月份数，即：总月差 = 年差值 * 12 + 月差值
+  // 2. 计算日期差值转成的小数，这部分逻辑就是算法差异，dayjs和momentjs的逻辑如下：
+  // 	2.1 获取锚点1 = b日期实例 + 总月差
+  //  2.2 获取a日期与锚点1的差值 = a日期 - 锚点1
+  //  2.3 判断a日期与锚点1的大小，即如果a日期小于锚点1，说明差距没这么大，需要减去多出来的部分，反之需要多加一部分
+  //  2.4 根据2.3的判断生成锚点2 = b日期实例 + 总月差+/-1，如此a日期实例必然落在锚点1和锚点2之间
+  //  2.5 获取锚点区间长度 = 锚点2 - 锚点1
+  //  2.6 计算a日期占据比例 = 锚点区间占据长度（a日期与锚点1的差值） / 锚点区间长度
+  // 3. 计算最终月差 = 第一步计算的总月差 + a日期占据比例
+  
+  // 正向逻辑写法：
+  // if (a.date() < b.date()) return -monthDiff(b, a)
+  // const wholeMonthDiff = ((a.year() - b.year()) * 12) + (a.month() - b.month())
+  // const anchor1 = b.clone().add(wholeMonthDiff, 'month')
+  // const l1 = a - anchor1
+  // const anchor2 = b.clone().add(wholeMonthDiff + (l1 < 0 ? -1 : 1), 'month')
+  // const l2 = Math.abs(anchor2 - anchor1);
+  // return (wholeMonthDiff + l1 / l2) || 0
+  
+  // 原反向逻辑写法-(b - a)：
+  if (a.date() < b.date()) return -monthDiff(b, a)
+  const wholeMonthDiff = ((b.year() - a.year()) * 12) + (b.month() - a.month())
+  const anchor = a.clone().add(wholeMonthDiff, C.M)
+  const c = b - anchor < 0
+  const anchor2 = a.clone().add(wholeMonthDiff + (c ? -1 : 1), C.M)
+  return +(-(wholeMonthDiff + ((b - anchor) / (c ? (anchor - anchor2) :
+    (anchor2 - anchor)))) || 0)
+}
+
+/**
+ * @description: 向0取整
+ * @param {Number} n 要取整的数
+ * @return {Number} 返回取整后的数字
+ */
+const absFloor = n => (
+  n < 0
+  	// || 0 是为了确保不会出现-0，Math.ceil(-0.1) => -0
+  	? Math.ceil(n) || 0
+		: Math.floor(n)
+)
+
+/**
+ * @description: 返回 u 对应的小写单数形式的单位，能自动适配标准格式和缩写格式
+ * @param {String} u M(month) y(year) w(week) d(day) D(date) h(hour) m(minute) s(second) ms(millisecond) Q(quarter) 或 其他字符串
+ * @return {String} u 对应的单位
+ */
+const prettyUnit = (u) => {
+  const special = {
+    M: C.M,
+    y: C.Y,
+    w: C.W,
+    d: C.D,
+    D: C.DATE,
+    h: C.H,
+    m: C.MIN,
+    s: C.S,
+    ms: C.MS,
+    Q: C.Q
+  }
+  // 返回special定义的单位，或将自定义的单位转为小写并去除结尾s字符的单数形式的单位
+  return special[u] || String(u || '').toLowerCase().replace(/s$/, '')
+}
+
+/**
+ * @description: 判断是否为undefined
+ * @param {Any} s
+ * @return {Boolean} 返回是否为undefined：true/false
+ */
+const isUndefined = s => s === undefined
+
+// index.js使用Utils空间，babel无法mangle
+// 缩短为了极致优化大小
+export default {
+  s: padStart,
+  z: padZoneStr,
+  m: monthDiff,
+  a: absFloor,
+  p: prettyUnit,
+  u: isUndefined
+}
 ```
 
