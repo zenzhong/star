@@ -6,7 +6,7 @@
   <link href="https://star.qingzz.cn/atom.xml" rel="self"/>
   
   <link href="https://star.qingzz.cn/"/>
-  <updated>2021-05-19T03:44:42.425Z</updated>
+  <updated>2021-05-19T10:47:02.857Z</updated>
   <id>https://star.qingzz.cn/</id>
   
   <author>
@@ -21,15 +21,15 @@
     <link href="https://star.qingzz.cn/2021/05/18/dayjs-yuan-ma-jie-xi/"/>
     <id>https://star.qingzz.cn/2021/05/18/dayjs-yuan-ma-jie-xi/</id>
     <published>2021-05-18T01:52:14.000Z</published>
-    <updated>2021-05-19T03:44:42.425Z</updated>
+    <updated>2021-05-19T10:47:02.857Z</updated>
     
     
       
       
         
         
-    <summary type="html">&lt;p&gt;本文内容基于&lt;code&gt;day.js&lt;/code&gt;的&lt;code&gt;v1.10.4&lt;/code&gt;版本，将主要从基础理念、工程架构、代码结构、插件体系和国际化体系来解析dayjs源码。&lt;/p&gt;
-&lt;h2 id=&quot;基础理念&quot;&gt;&lt;a href=&quot;#基础理念&quot;</summary>
+    <summary type="html">&lt;p&gt;本文内容基于&lt;code&gt;day.js&lt;/code&gt;的&lt;code&gt;v1.10.4&lt;/code&gt;版本，将主要从基础理念、工程架构、源码解析、插件体系和国际化体系来解析dayjs源码。&lt;/p&gt;
+&lt;p&gt;对时间相关的概念和API不熟悉的推荐先阅读上一篇文章&lt;a</summary>
         
       
     
@@ -45,7 +45,7 @@
     <link href="https://star.qingzz.cn/2021/05/14/shi-jian/"/>
     <id>https://star.qingzz.cn/2021/05/14/shi-jian/</id>
     <published>2021-05-14T05:32:47.000Z</published>
-    <updated>2021-05-19T03:44:42.425Z</updated>
+    <updated>2021-05-19T10:47:02.857Z</updated>
     
     
       
@@ -69,7 +69,7 @@
     <link href="https://star.qingzz.cn/2021/05/11/hello-world/"/>
     <id>https://star.qingzz.cn/2021/05/11/hello-world/</id>
     <published>2021-05-11T00:57:26.000Z</published>
-    <updated>2021-05-19T03:44:42.425Z</updated>
+    <updated>2021-05-19T10:47:02.857Z</updated>
     
     
       
