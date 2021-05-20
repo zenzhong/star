@@ -4,17 +4,39 @@ date: 2021-05-18 09:52:14
 tags: 源码解析
 ---
 
-本文内容基于`day.js`的`v1.10.4`版本，将主要从基础理念、工程架构、源码解析、插件体系和国际化体系来解析dayjs源码。
+本文内容基于`day.js`的`v1.10.4`版本，将主要从基础理念、工程架构、源码解析来分析dayjs源码。
 
 对时间相关的概念和API不熟悉的推荐先阅读上一篇文章[时间](https://star.qingzz.cn/2021/05/14/shi-jian/)。
 
 ## 基础理念
 
-`dayjs`是国内饿了么团队`iamkun`大佬开发，同时他也是`Element UI`的核心开发者。`dayjs`首次发布在2018年4月，开发初衷就是为了对标`momentjs`从而取代它，因此API的设计与`momentjs`完全一致。正如作者所说：
+`dayjs`是国内饿了么团队`iamkun`大佬开发，同时他也是`Element UI`的核心开发者。`dayjs`首次发布在2018年4月，开发初衷就是为了对标`momentjs`从而取代它，因此API的设计与`momentjs`完全一致。
 
-> Day.js is a minimalist JavaScript library that parses, validates, manipulates, and displays dates and times for modern browsers with a largely Moment.js-compatible API. If you use Moment.js, you already know how to use Day.js.
+而官网上明确的告诉了我们`dayjs`本身的亮点：
 
-那`dayjs`究竟解决了哪些`momentjs`的痛点？又是通过什么方式解决的呢？看完全文应该就会有答案。
+> ## 为什么使用 Day.js ？
+>
+> ### 2kB
+>
+> 下载、解析和执行更少的 JavaScript，为您的代码留出更多时间。
+>
+> ### 简易
+>
+> Day.js 是一个轻量的处理时间和日期的 JavaScript 库，和 Moment.js 的 API 设计保持完全一样。
+>
+> 如果您曾经用过 Moment.js, 那么您已经知道如何使用 Day.js 。
+>
+> ### 不可变的
+>
+> 所有的 API 操作都将返回一个新的 Dayjs 对象。
+>
+> 这种设计能避免 bug 产生，节约调试时间。
+>
+> ### 国际化
+>
+> Day.js 对国际化支持良好。但除非手动加载，多国语言默认是不会被打包到工程里的
+
+那这些亮点是如何在代码中实现体现的呢？看完全文你应该就能有所体会。
 
 ## 工程架构
 
@@ -1196,6 +1218,7 @@ dayjs.extend = (plugin, option) => {
   // 防止多次注册
   if (!plugin.$install) { // install plugin only once
     // 调用函数全局注册插件
+    // 插件主要通过在Dayjs添加prototype方法，或者在dayjs添加属性和静态方法来扩展功能
     plugin(option, Dayjs, dayjs)
     // 添加安装标记
     plugin.$install = true
@@ -1225,9 +1248,12 @@ dayjs.plugins = {}
 export default dayjs
 ```
 
+## 总结
 
+通过分析，我们可以得出`dayjs`是如何践行自己的基础理念的：
 
-
-
-
+- 2kb：从工程设计上通过工具检测死守底线，仅保留核心功能，将国际化语言包按需引入，非必要的功能全部迁到插件体系中。甚至使用不太推荐的短字符串变量用于精简大小。
+- 简易：站在巨人的肩膀上也是`dayjs`成功的原因，从`momentjs`汲取大量营养，从完整成熟的API体系设计，到通过一些技巧解决月份比较、DST造成每天未必有24小时问题等，快速催熟了`dayjs`的代码生态质量体系。为了对标`momentjs`,甚至有专门的单元测试来确保表现一致，而且能快速替换`Element UI`、`Antd`等使用`momentjs`的库，从而快速成长扩张自己的生态。
+- 不可变性：`dayjs`既能链式调用，又随时判断是否需要保持不可变性，本身实现了快速拷贝功能。通过不可变性，增强代码的可控性，而且可以保持一份`Date`各项数据的属性值，而不需要一直更新，只有在设置的时候才需要更新，减少了复杂度。同时，通过不可变性，插件体系更加可控，减少不必要的代码成本。
+- 国际化：国际化包是`momentjs`大小的痛点之一，通过按需加载，将国际化包独立，`dayjs`能大大减小最终大小，同时语言包模版固定，能快速实现扩展，现在国际化生态已基本覆盖常用的语言。
 
