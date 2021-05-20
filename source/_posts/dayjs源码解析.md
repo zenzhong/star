@@ -100,7 +100,7 @@ export const INVALID_DATE_STRING = 'Invalid Date'
 
 // 解析ISO 8601时间字符串，根据match捕获的索引可以获取年月日时分秒毫秒等信息
 export const REGEX_PARSE = /^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[^0-9]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/
-// 解析时间格式字符串，返回相应的时间格式
+// 解析时间格式字符串，通过String.replace将所有捕获的格式替换为实际值
 export const REGEX_FORMAT = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g
 ```
 
@@ -434,7 +434,7 @@ const parseLocale = (preset, object, isLocal) => {
 
 /**
  * @description 工厂函数对象dayjs
- * @param {Dayjs|Date} date Dayjs对象实例或Date对象实例
+ * @param {Any} date Dayjs对象实例或Date对象实例或可以转换为Date的字符串、时间戳等
  * @param {Object} c 配置对象
  * @return {Dayjs} 返回Dayjs实例对象
  */
@@ -525,7 +525,9 @@ const parseDate = (config) => {
     }
   }
 
-  // 其他类型的数据将尝试使用Date解析，无法确保能解析成功：https://star.qingzz.cn/2021/05/14/shi-jian/#toc-heading-16
+  // 这里覆盖其他类型，Dayjs本身会使用timestamp的类型，在add()方法里面使用
+  // 其他类型的字符串将尝试使用Date解析，无法确保能解析成功：
+  // https://star.qingzz.cn/2021/05/14/shi-jian/#toc-heading-16
   return new Date(date) // everything else
 }
 
@@ -615,45 +617,49 @@ class Dayjs {
    */
   isSame(that, units) {
     const other = dayjs(that)
-    // 夹逼定理：
+    // 使用夹逼定理，可确定other落在units层级区间里，即在上一层级必然相等
+    // 若不传units，则startOf和endOf都是返回拷贝，直接根据相等判断即可
     return this.startOf(units) <= other && other <= this.endOf(units)
   }
 
   /**
-   * 
-   * @param {*} that 
-   * @param {*} units 
-   * @returns 
+   * @description 判断当前实例时间是否在另外一个实例的时间之后
+   * @param {Dayjs} that Dayjs比较实例
+   * @param {String} units 单位层级字符串
+   * @return {Boolean} 返回是否在that之后，true/false
    */
   isAfter(that, units) {
     return dayjs(that) < this.startOf(units)
   }
 
   /**
-   * 
-   * @param {*} that 
-   * @param {*} units 
-   * @returns 
+   * @description 判断当前实例时间是否在另外一个实例的时间之前
+   * @param {Dayjs} that Dayjs比较实例
+   * @param {String} units 单位层级字符串
+   * @return {Boolean} 返回是否在that之前，true/false
    */
   isBefore(that, units) {
     return this.endOf(units) < dayjs(that)
   }
 
   /**
-   * 
-   * @param {*} input 
-   * @param {*} get 
-   * @param {*} set 
-   * @returns 
+   * @description 私有方法，用于分发获取或设置各项时间参数
+   * @param {Number} input 设置值
+   * @param {String} get 获取参数键值
+   * @param {String} set 设置参数键值
+   * @return {Dayjs|Number} 获取则返回获取值，设置则返回this实例用于链式调用
    */
-  $generate(input, get, set) {
+  $getterSetter(input, get, set) {
+    // 可跳转到下面调用的地方一起看
+    // 不传input,则是获取方法，直接获取属性值，在init()方法初始化和更新
     if (Utils.isUndefined(input)) return this[get]
+    // 传入input，则是设置方法
     return this.set(set, input)
   }
 
   /**
-   * 
-   * @returns 
+   * @description 返回秒级别的时间戳
+   * @return {Number} 秒级时间戳
    */
   unix() {
     return Math.floor(this.valueOf() / 1000)
@@ -669,66 +675,121 @@ class Dayjs {
   }
 
   /**
-   * @description 获取某个单位层级范围空间的起始值或结束值
+   * @description 根据单位将实例设置到一个时间段的开始
    * @param {String} units 单位字符串
    * @param {Boolean} startOf 可选，true或不传使用开始值，false使用结束值
-   * @return {Dayjs} 返回某个单位层级范围空间的起始值或结束值实例
+   * @return {Dayjs} 返回某个时间段起始或结束的实例
    */
   startOf(units, startOf) { // startOf -> endOf
+    // 不传或true则计算startOf，否则为endOf
     const isStartOf = !Utils.isUndefined(startOf) ? startOf : true
+    // 通过prettyUnit扩展单位支持范围，接受普通值、缩写、复数，对大小写不敏感
     const unit = Utils.prettyUnit(units)
+
     /**
-     * @description 
-     * @param {Number} d 
-     * @param {Number} m 
-     * @return 
+     * @description 根据月日（参数）和年份（实例）创建新的Dayjs实例
+     * @param {Number} d 日值
+     * @param {Number} m 月值，为索引
+     * @return {Dayjs} 返回新实例，环境参数使用原实例配置
      */
-    const instanceFactory = (d, m) => {
+    // 为什么要日，月呢？可读性不好，下面instanceFactorySet又从大到小，一致性不好。修改调整：
+    // const instanceFactory = (d, m) => {
+    const instanceFactory = (m, d) => {
       const ins = Utils.wrapper(this.$utc ?
         Date.UTC(this.$year, m, d) : new Date(this.$year, m, d), this)
+      // 如果 isStartOf 为 false，返回ins当天的 endOf
       return isStartOf ? ins : ins.endOf(CONSTANT.D)
     }
+
     /**
-     * 
-     * @param {*} method 
-     * @param {*} slice 
-     * @return 
+     * @description 根据传入的方法来返回新的Dayjs实例
+     * @param {String} method 设置方法，如setHours,setMinutes等
+     * @param {Number} slice 截取参数
+     * @return {Dayjs} 返回新实例
      */
     const instanceFactorySet = (method, slice) => {
       // [时,分,秒,毫秒]起始区间
       const argumentStart = [0, 0, 0, 0]
       const argumentEnd = [23, 59, 59, 999]
+      // 这里使用apply主要是想利用它接收数组参数的效果，也可以使用扩展运算符实现：
+      // return Utils.wrapper(this.toDate()[method](
+      //   ...(isStartOf ? argumentStart : argumentEnd).slice(slice)
+      // ), this)
       return Utils.wrapper(this.toDate()[method].apply(
-        this.toDate('s'),
+        // 这里多了无用参数's'，应该是个bug
+        // this.toDate('s'),
+        this.toDate(),
         (isStartOf ? argumentStart : argumentEnd).slice(slice)
       ), this)
     }
+
+    // 以下代码调整了instanceFactory参数的顺序：
+    // 获取星期，月，日值
     const { $WeekDay, $Month, $Date } = this
+    // 原生设置方法UTC需要多加UTC字符
     const utcPad = `set${this.$utc ? 'UTC' : ''}`
     switch (unit) {
+      // 年：起始值为1-1 0:0:0，结束值为12-31 23:59:59.999（当天的endOf）
       case CONSTANT.Y:
-        return isStartOf ? instanceFactory(1, 0) :
-          instanceFactory(31, 11)
+        return isStartOf ? instanceFactory(0, 1) :
+          instanceFactory(11, 31)
+      // 月：起始值为月-1 0:0:0，结束值为下一月-0 23:59:59.999
+      // 骚操作：设置为下一个月，且日期为0，相当于上一个月的最后一天，这样完全不需要判断上个月是28、29、30、31天
       case CONSTANT.M:
-        return isStartOf ? instanceFactory(1, $Month) :
-          instanceFactory(0, $Month + 1)
+        return isStartOf ? instanceFactory($Month, 1) :
+          instanceFactory($Month + 1, 0)
+      // 周：起始值为周日或周一的 0:0:0，结束值为周一或周日的 23:23:59.999
       case CONSTANT.W: {
         const weekStart = this.$locale().weekStart || 0
         const gap = ($WeekDay < weekStart ? $WeekDay + 7 : $WeekDay) - weekStart
-        return instanceFactory(isStartOf ? $Date - gap : $Date + (6 - gap), $Month)
+        return instanceFactory($Month, isStartOf ? $Date - gap : $Date + (6 - gap))
       }
+      // 日：起始值为0:0:0.0，结束值为23:59:59.999
       case CONSTANT.D:
       case CONSTANT.DATE:
         return instanceFactorySet(`${utcPad}Hours`, 0)
+      // 时：起始值为0:0:0.0，结束值为23:59:59.999
       case CONSTANT.H:
         return instanceFactorySet(`${utcPad}Minutes`, 1)
+      // 分：起始值为0:0.0，结束值为59:59.999
       case CONSTANT.MIN:
         return instanceFactorySet(`${utcPad}Seconds`, 2)
+      // 秒：起始值为0.0，结束值为59.999
       case CONSTANT.S:
         return instanceFactorySet(`${utcPad}Milliseconds`, 3)
+      // 默认返回一个拷贝
       default:
         return this.clone()
     }
+
+    // // 获取星期，月，日值
+    // const { $WeekDay, $Month, $Date } = this
+    // // 原生设置方法UTC需要多加UTC字符
+    // const utcPad = `set${this.$utc ? 'UTC' : ''}`
+    // switch (unit) {
+    //   case CONSTANT.Y:
+    //     return isStartOf ? instanceFactory(1, 0) :
+    //       instanceFactory(31, 11)
+    //   case CONSTANT.M:
+    //     return isStartOf ? instanceFactory(1, $Month) :
+    //       instanceFactory(0, $Month + 1)
+    //   case CONSTANT.W: {
+    //     const weekStart = this.$locale().weekStart || 0
+    //     const gap = ($WeekDay < weekStart ? $WeekDay + 7 : $WeekDay) - weekStart
+    //     return instanceFactory(isStartOf ? $Date - gap : $Date + (6 - gap), $Month)
+    //   }
+    //   case CONSTANT.D:
+    //   case CONSTANT.DATE:
+    //     return instanceFactorySet(`${utcPad}Hours`, 0)
+    //   case CONSTANT.H:
+    //     return instanceFactorySet(`${utcPad}Minutes`, 1)
+    //   case CONSTANT.MIN:
+    //     return instanceFactorySet(`${utcPad}Seconds`, 2)
+    //   case CONSTANT.S:
+    //     return instanceFactorySet(`${utcPad}Milliseconds`, 3)
+    //   default:
+    //     return this.clone()
+    // }
   }
 
   /**
@@ -741,10 +802,10 @@ class Dayjs {
   }
 
   /**
-   * @description 私有方法，
-   * @param {*} units 
-   * @param {*} int 
-   * @returns 
+   * @description 私有方法，设置某个单位层级的值
+   * @param {String} units 单位
+   * @param {Number} int 设置值
+   * @return {Dayjs} 返回this，方便链式调用
    */
   $set(units, int) { // private set
     const unit = Utils.prettyUnit(units)
@@ -759,83 +820,186 @@ class Dayjs {
       [CONSTANT.S]: `${utcPad}Seconds`,
       [CONSTANT.MS]: `${utcPad}Milliseconds`
     }[unit]
+    // 由于使用setDate设置星期几，因此只需要将设置值减去当前值，即可知道需要在本周调整几天
+    // 然后和this.$Date即日期相加进行调整就可以了
+    // 其他参数都有自己原生的设置方法，直接调用即可
     const arg = unit === CONSTANT.D ? this.$Date + (int - this.$WeekDay) : int
 
+    // 如果是年/月
+    // 重新设置年和月可能影响月份天数，例如当前是5月31日，月份改成4月，只能改成30日
+    // 或者当前是2000年2月29日，年份改成2001年，2月只有28天，只能改成28日
     if (unit === CONSTANT.M || unit === CONSTANT.Y) {
       // clone is for badMutable plugin
+      // 首页拷贝一份并设置日期为1号
       const date = this.clone().set(CONSTANT.DATE, 1)
+      // 设置年或月
       date.$date[name](arg)
+      // 重新初始化拷贝实例对象
       date.init()
+      // 获取当月最长天数，如果当前实例日期超过则使用当月最长天数，否则为安全日期，直接使用即可
       this.$date = date.set(CONSTANT.DATE, Math.min(this.$Date, date.daysInMonth())).$date
-    } else if (name) this.$date[name](arg)
+    } else if (name) {
+      // 其他方法直接调用Date本身的方法进行设置即可
+      this.$date[name](arg)
+    }
 
+    // 更新各项参数值
     this.init()
+
+    // 返回this，用于链式调用
     return this
   }
 
+  /**
+   * @description 设置值
+   * @param {String} string 设置键值
+   * @param {Number} int 值
+   * @return {Dayjs} 返回对象，用于链式调用
+   */
   set(string, int) {
     return this.clone().$set(string, int)
   }
 
+  /**
+   * @description 获取某个单位级别的值
+   * @param {String} unit 单位
+   * @return {Number} 通过下面getterSetter分发挂载的原型方法获取某个单位级别的值
+   */
   get(unit) {
     return this[Utils.prettyUnit(unit)]()
   }
 
+  /**
+   * @description 获取当前日期增加一段时间后的实例对象
+   * @param {Number} number 增加的数量
+   * @param {String} units 增加的单位
+   * @return {Dayjs} 返回增加一段时间后的实例
+   */
   add(number, units) {
-    number = Number(number) // eslint-disable-line no-param-reassign
+    // 确保为数字
+    number = Number(number)
+    // 获取统一单位
     const unit = Utils.prettyUnit(units)
+    
+    /**
+     * @description 工厂函数，计算天数相关的增加，使用四舍五入
+     * @param {Number} n 1或7对应天和周
+     * @return {Dayjs} 返回增加时间后的实例
+     */
     const instanceFactorySet = (n) => {
+      // 是否使用this.clone更语意化呢？
+      // const d = this.clone()
       const d = dayjs(this)
       return Utils.wrapper(d.date(d.date() + Math.round(n * number)), this)
     }
+
+    // 代码顺序可调整：年月日周时分秒毫秒更整齐
+
+    // 月
     if (unit === CONSTANT.M) {
       return this.set(CONSTANT.M, this.$Month + number)
     }
+    // 年
     if (unit === CONSTANT.Y) {
       return this.set(CONSTANT.Y, this.$year + number)
     }
+    // // 月
+    // if (unit === CONSTANT.M) {
+    //   return this.set(CONSTANT.M, this.$Month + number)
+    // }
+    // 日
     if (unit === CONSTANT.D) {
       return instanceFactorySet(1)
     }
+    // 周
     if (unit === CONSTANT.W) {
       return instanceFactorySet(7)
     }
+
     const step = {
       [CONSTANT.MIN]: CONSTANT.MILLISECONDS_A_MINUTE,
       [CONSTANT.H]: CONSTANT.MILLISECONDS_A_HOUR,
+      // [CONSTANT.MIN]: CONSTANT.MILLISECONDS_A_MINUTE,
       [CONSTANT.S]: CONSTANT.MILLISECONDS_A_SECOND
     }[unit] || 1 // ms
 
+    // 通过时间戳生成最终实例
     const nextTimeStamp = this.$date.getTime() + (number * step)
     return Utils.wrapper(nextTimeStamp, this)
   }
 
+  /**
+   * @description 获取当前日期减少一段时间后的实例对象
+   * @param {Number} number 减少的数量
+   * @param {String} string 减少的单位
+   * @return {Dayjs} 返回减少一段时间后的实例
+   */
   subtract(number, string) {
     return this.add(number * -1, string)
   }
 
+  /**
+   * @description 获取格式化的时间字符串
+   * @param {String} formatStr 时间字符串格式
+   * @return {String} 返回格式化的时间字符串
+   */
   format(formatStr) {
+    // 非法时间直接返回Invalid Date
     if (!this.isValid()) return CONSTANT.INVALID_DATE_STRING
 
+    // 不传格式则使用默认IOS 8601格式:'YYYY-MM-DDTHH:mm:ssZ'
     const str = formatStr || CONSTANT.FORMAT_DEFAULT
+    // 时区偏移部分字符串
     const zoneStr = Utils.padZoneStr(this)
+    // 获取当前语言配置
     const locale = this.$locale()
+
+    // 获取时分月值
     const { $Hour, $minute, $Month } = this
+    // 获取语言包里面的星期、月份、时间范围配置
     const {
       weekdays, months, meridiem
     } = locale
+
+    /**
+     * @description: 返回对应缩写的字符串，可自适应
+     * @param {Array|Function} arr 星期和月份的缩写数组，也可以是函数
+     * @param {Number} index 索引
+     * @param {Array} full 星期和月份的非缩写数组
+     * @param {Number} length 返回结果的字符长度
+     * @return {String} 对应缩写的字符串
+     */
     const getShort = (arr, index, full, length) => (
-      (arr && (arr[index] || arr(this, str))) || full[index].substr(0, length)
+      (
+        arr && (arr[index] || arr(this, str)) // 通过缩写数组和索引获取
+      ) || full[index].substr(0, length) // 截取完整字符串的前面几个字符作为缩写，如Monday截取前3个字符：Mon
     )
+
+    /**
+     * @description 获取12小时制的小时数
+     * @param {Number} num 格式长度
+     * @return {String} 返回使用0补足num长度的小时数
+     */
     const get$Hour = num => (
+      // 这里关注|| 12，一般使用取余操作将小于除数，即0-11，使用 || 12，之后，0点和12点都会返回12
       Utils.padStart($Hour % 12 || 12, num, '0')
     )
 
+    /**
+     * @description 定义时间返回字符串的函数，默认取语言包定义的，否则使用默认en环境的
+     * @param {Number} hour 时
+     * @param {Number} minute 分
+     * @param {Boolean} isLowercase 是否要转为小写
+     * @return {String} 返回语言包定义的时间范围，默认返回AM/PM，传入小写则返回am/pm
+     */
     const meridiemFunc = meridiem || ((hour, minute, isLowercase) => {
       const m = (hour < 12 ? 'AM' : 'PM')
       return isLowercase ? m.toLowerCase() : m
     })
 
+    /**
+     * 定义格式对应的值
+     */
     const matches = {
       YY: String(this.$year).slice(-2),
       YYYY: this.$year,
@@ -863,39 +1027,71 @@ class Dayjs {
       Z: zoneStr // 'ZZ' logic below
     }
 
+    // 解析时间格式字符串，通过String.replace将所有捕获的格式替换为实际值
+    // const REGEX_FORMAT = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g
+    // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/replace#%E6%8C%87%E5%AE%9A%E4%B8%80%E4%B8%AA%E5%87%BD%E6%95%B0%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0
     return str.replace(CONSTANT.REGEX_FORMAT, (match, $1) => $1 || matches[match] || zoneStr.replace(':', '')) // 'ZZ'
   }
 
+  /**
+   * @description 获取分钟级的UTC偏移量，精度为15分钟
+   * @return {Number} 返回UTC偏移量
+   */
   utcOffset() {
     // Because a bug at FF24, we're rounding the timezone offset around 15 minutes
     // https://github.com/moment/moment/pull/1871
     return -Math.round(this.$date.getTimezoneOffset() / 15) * 15
   }
 
+  /**
+   * @description 获取当前实例与另外一个日期之间的差异
+   * @param {Any} input Dayjs实例、或可以转换为Date的参数，如Date实例、时间戳、ISO 8601字符串等
+   * @param {String} units 单位
+   * @param {Boolean} float 是否保留小数
+   * @return {Number} 返回差别的单位数
+   */
   diff(input, units, float) {
+    // 单位
     const unit = Utils.prettyUnit(units)
+    // 使用input定义实例
     const that = dayjs(input)
+    // 获取UTC差别的分钟数转为毫秒数，解决DST造成的时差问题，由于DST某些天不会是完整的24小时
+    // https://github.com/moment/moment/issues/831
+    // https://github.com/moment/moment/issues/2361
     const zoneDelta = (that.utcOffset() - this.utcOffset()) * CONSTANT.MILLISECONDS_A_MINUTE
+    // 获取直接相减的毫秒数
     const diff = this - that
+    // 获取差别的月份数
     let result = Utils.monthDiff(this, that)
 
+    // 这里可能会做一些无谓计算，但是如果使用判断未必能更快
+    // 这样的写法更简洁
     result = {
+      // 年
       [CONSTANT.Y]: result / 12,
+      // 月
       [CONSTANT.M]: result,
+      // 季
       [CONSTANT.Q]: result / 3,
+      // 周
       [CONSTANT.W]: (diff - zoneDelta) / CONSTANT.MILLISECONDS_A_WEEK,
+      // 日
       [CONSTANT.D]: (diff - zoneDelta) / CONSTANT.MILLISECONDS_A_DAY,
+      // 时
       [CONSTANT.H]: diff / CONSTANT.MILLISECONDS_A_HOUR,
+      // 分
       [CONSTANT.MIN]: diff / CONSTANT.MILLISECONDS_A_MINUTE,
+      // 秒
       [CONSTANT.S]: diff / CONSTANT.MILLISECONDS_A_SECOND
     }[unit] || diff // milliseconds
 
+    // 返回保留小数或取整的结果
     return float ? result : Utils.absFloor(result)
   }
 
   /**
-   * @description 
-   * @return 
+   * @description 获取月份包含天数
+   * @return {Number} 返回月底日期
    */
   daysInMonth() {
     return this.endOf(CONSTANT.M).$Date
@@ -982,29 +1178,47 @@ dayjs.prototype = proto;
   ['$year', CONSTANT.Y],
   ['$Date', CONSTANT.DATE]
 ].forEach((g) => {
+  // 使用分发快速挂载一种类型的方法，值得学习
+  // 注册原型方法：year,month,date,week,hour,minute,second,millisecond
+  // input不传则是获取，否则是设置，这种getter和setter的区别非常常见，可关注
   proto[g[1]] = function (input) {
-    return this.$generate(input, g[0], g[1])
+    return this.$getterSetter(input, g[0], g[1])
   }
 })
 
+/**
+ * @description 导入并启用插件
+ * @param {Object} plugin 插件对象
+ * @param {Object} option 插件配置
+ * @return {dayjs} 返回已安装插件的dayjs对象，用于链式调用
+ */
 dayjs.extend = (plugin, option) => {
+  // 防止多次注册
   if (!plugin.$install) { // install plugin only once
+    // 调用函数全局注册插件
     plugin(option, Dayjs, dayjs)
+    // 添加安装标记
     plugin.$install = true
   }
   return dayjs
 }
 
+// 解析语言配置，导入并启用语言包
 dayjs.locale = parseLocale
 
+// 判断是否是Dayjs实例对象
 dayjs.isDayjs = isDayjs
 
+// 通过秒级的时间戳生成dayjs实例
 dayjs.unix = timestamp => (
   dayjs(timestamp * 1e3)
 )
 
+// 定义默认语言en的环境
 dayjs.en = LoadedLocales[LOCALE]
+// 注册语言包
 dayjs.LoadedLocales = LoadedLocales
+// 定义插件对象
 dayjs.plugins = {}
 
 // 返回工厂函数dayjs
