@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>链接</title>
+      <link href="2021/05/21/lian-jie/"/>
+      <url>2021/05/21/lian-jie/</url>
+      
+        <content type="html"><![CDATA[<p>本文主要是想总结关于链接相关的知识，围绕URL API、Location API、History API进行解析。</p><p>示例链接：</p><h2 id="URL-API"><a href="#URL-API" class="headerlink" title="URL API"></a>URL API</h2><p><code>URL API</code>是一个URL标准的组件，它定义了有效的Uniform Resource Locator和访问、操作URL的API。除了IE浏览器，大部分现代浏览器都实现了相对完整的URL API，具体兼容性可查看：<a href="https://caniuse.com/?search=URL">https://caniuse.com/?search=URL</a>。</p><h3 id="URL"><a href="#URL" class="headerlink" title="URL"></a>URL</h3><p>**<code>URL</code>**接口用于解析，构造，规范化和编码URL。</p><h4 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h4><ul><li>new URL()：创建并返回一个URL对象，该URL对象引用使用<code>绝对URL字符串</code>，<code>相对URL字符串</code>和<code>基本URL字符串</code>指定的URL。</li></ul><h4 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h4><h3 id="URLSearchParams"><a href="#URLSearchParams" class="headerlink" title="URLSearchParams"></a>URLSearchParams</h3><h2 id="Location-API"><a href="#Location-API" class="headerlink" title="Location API"></a>Location API</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><p><code>Location</code>接口表示其链接到资源对象的位置（URL）</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 前端基础 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>dayjs源码解析</title>
       <link href="2021/05/18/dayjs-yuan-ma-jie-xi/"/>
       <url>2021/05/18/dayjs-yuan-ma-jie-xi/</url>
