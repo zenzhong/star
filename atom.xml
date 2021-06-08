@@ -6,7 +6,7 @@
   <link href="https://star.qingzz.cn/atom.xml" rel="self"/>
   
   <link href="https://star.qingzz.cn/"/>
-  <updated>2021-05-21T05:53:28.517Z</updated>
+  <updated>2021-06-08T01:33:46.584Z</updated>
   <id>https://star.qingzz.cn/</id>
   
   <author>
@@ -17,27 +17,26 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>链接</title>
-    <link href="https://star.qingzz.cn/2021/05/21/lian-jie/"/>
-    <id>https://star.qingzz.cn/2021/05/21/lian-jie/</id>
-    <published>2021-05-21T01:01:53.000Z</published>
-    <updated>2021-05-21T05:53:28.517Z</updated>
+    <title>NPM包系列之nodemon</title>
+    <link href="https://star.qingzz.cn/2021/06/08/npm-bao-xi-lie-zhi-nodemon/"/>
+    <id>https://star.qingzz.cn/2021/06/08/npm-bao-xi-lie-zhi-nodemon/</id>
+    <published>2021-06-08T00:45:24.000Z</published>
+    <updated>2021-06-08T01:33:46.584Z</updated>
     
     
       
       
         
         
-    <summary type="html">&lt;p&gt;本文主要是想总结关于链接相关的知识，围绕URL API、Location API、History API进行解析。&lt;/p&gt;
-&lt;p&gt;示例链接：&lt;/p&gt;
-&lt;h2 id=&quot;URL-API&quot;&gt;&lt;a href=&quot;#URL-API&quot; class=&quot;headerlink&quot;</summary>
+    <summary type="html">&lt;p&gt;本文是NPM包系列的第一篇，关注工具包nodemon。&lt;/p&gt;
+&lt;h2 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot;</summary>
         
       
     
     
     
     
-    <category term="前端基础" scheme="https://star.qingzz.cn/tags/%E5%89%8D%E7%AB%AF%E5%9F%BA%E7%A1%80/"/>
+    <category term="NPM包" scheme="https://star.qingzz.cn/tags/NPM%E5%8C%85/"/>
     
   </entry>
   
@@ -46,7 +45,7 @@
     <link href="https://star.qingzz.cn/2021/05/18/dayjs-yuan-ma-jie-xi/"/>
     <id>https://star.qingzz.cn/2021/05/18/dayjs-yuan-ma-jie-xi/</id>
     <published>2021-05-18T01:52:14.000Z</published>
-    <updated>2021-05-21T05:53:28.517Z</updated>
+    <updated>2021-06-08T01:33:46.584Z</updated>
     
     
       
@@ -70,7 +69,7 @@
     <link href="https://star.qingzz.cn/2021/05/14/shi-jian/"/>
     <id>https://star.qingzz.cn/2021/05/14/shi-jian/</id>
     <published>2021-05-14T05:32:47.000Z</published>
-    <updated>2021-05-21T05:53:28.517Z</updated>
+    <updated>2021-06-08T01:33:46.584Z</updated>
     
     
       
@@ -94,7 +93,7 @@
     <link href="https://star.qingzz.cn/2021/05/11/hello-world/"/>
     <id>https://star.qingzz.cn/2021/05/11/hello-world/</id>
     <published>2021-05-11T00:57:26.000Z</published>
-    <updated>2021-05-21T05:53:28.517Z</updated>
+    <updated>2021-06-08T01:33:46.584Z</updated>
     
     
       
