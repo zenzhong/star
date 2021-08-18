@@ -920,10 +920,10 @@ hexo-log@^2.0.0:
   dependencies:
     chalk "^4.0.0"
 
-hexo-minify@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/hexo-minify/-/hexo-minify-1.0.1.tgz#5b15a7e1f65773d4b3e050b197b0a30d92df3369"
-  integrity sha512-xgSEJUiZAonRFCjqJJAMxaelN4/mCiaU9BCaAdwjcgNfcX3CiwIBz7oYT8kwjz1lRjt1J/Jh+XS2p9ilIhWMIQ==
+hexo-minify@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/hexo-minify/-/hexo-minify-1.0.2.tgz#b2eef2142ef756002600274196ae97639c2a466f"
+  integrity sha512-3rHgoFm6wqfYSv8FexBY5HCbE0WOEv1TAziwfrLF3LfDkXuIuxt9mD2jiijzrak2ppVtegGErUKU4Qi2vR30kg==
   dependencies:
     clean-css "^4.2.3"
     html-minifier "^4.0.0"
